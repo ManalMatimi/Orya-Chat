@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orya Voice Only</title>
+  <link rel="stylesheet" href="voice.css" />
+</head>
+<body>
+
+  <main class="voice-page">
+    <section class="voice-card">
+
+      <header class="voice-header">
+        <button onclick="window.location.href='index.html'">← Back</button>
+        <h3>Talk with Orya</h3>
+      </header>
+
+      <div id="orb" class="orb idle">
+        <div class="wave"></div>
+      </div>
+
+      <p id="statusText">Click the mic and start talking</p>
+
+      <div class="voice-actions">
+        <button id="listenBtn">🎙</button>
+        <button id="stopBtn">×</button>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="voice.js"></script>
+</body>
+</html>

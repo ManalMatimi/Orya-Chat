@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orya AI Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <main class="app">
+
+    <aside class="sidebar">
+      <button class="back">←</button>
+
+      <h2>Chat Results</h2>
+<div class="history-card active" onclick="window.location.href='voice.html'">
+  <div>
+    <h4>Voice Only</h4>
+    <p>Talk with Orya</p>
+  </div>
+  <button type="button">↗</button>
+</div>
+
+<p class="date">Avatar Personality</p>
+
+<div class="history-card personality-option active"
+     data-personality="cute, douce, gentille et encourageante">
+  <div>
+    <h4>Cute Friend</h4>
+    <p>Soft, kind and encouraging</p>
+  </div>
+<button type="button">↗</button>
+</div>
+
+<div class="history-card personality-option"
+     data-personality="professionnelle, claire et sérieuse">
+  <div>
+    <h4>Professional</h4>
+    <p>Clear, calm and serious</p>
+  </div>
+<button type="button">↗</button>
+</div>
+
+<div class="history-card personality-option"
+     data-personality="drôle, fun et énergique">
+  <div>
+    <h4>Funny Mode</h4>
+    <p>Fun, energetic and playful</p>
+  </div>
+<button type="button">↗</button>
+</div>
+
+<div class="history-card personality-option"
+     data-personality="professeure patiente qui explique aux débutants">
+  <div>
+    <h4>Teacher</h4>
+    <p>Explains simply</p>
+  </div>
+<button type="button">↗</button>
+</div>
+    <div class="bottom-icons">
+        <button>⚙</button>
+        <button>☾</button>
+        <div class="avatar">M</div>
+      </div>
+    </aside>
+
+    <section class="chat">
+      <header class="chat-header">
+        <button>✦</button>
+        <h2>New Chat</h2>
+        <button>×</button>
+      </header>
+
+      <div class="welcome">
+        <div class="profile">M</div>
+        <div>
+          <p>Hi, Manal!</p>
+          <h3>How can I help you?</h3>
+        </div>
+    </div>
+
+      <div id="messages" class="messages">
+        <div class="message bot">
+          Salaam Manal 💗 Je suis ton assistant IA local avec Ollama. Pose-moi une question.
+        </div>
+      </div>
+
+<div class="tools">
+    <button type="button" id="languageBtn">🌍 Langue</button>
+    <button onclick="chooseFile()">📄 Fichier</button>
+    <button onclick="startVoice()">🎙 Audio</button> 
+</div>
+
+
+</div>
+
+      <form id="chatForm" class="input-box">
+        <input id="messageInput" type="text" placeholder="Ask me anything..." />
+        <button type="submit">➜</button>
+      </form>
+
+      <input type="file" id="fileInput" hidden />
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
