@@ -27,8 +27,19 @@ function startVoiceChat() {
     return;
   }
 
+  const savedLang = localStorage.getItem("oryaLang") || "français";
+  const savedPersonality = localStorage.getItem("oryaPersonality") || "cute, douce, gentille et encourageante";
+
+  const langMap = {
+    "français": "fr-FR",
+    "english": "en-US",
+    "العربية": "ar-SA",
+    "日本語": "ja-JP",
+    "中文": "zh-CN"
+  };
+
   const recognition = new SpeechRecognition();
-  recognition.lang = "fr-FR";
+  recognition.lang = langMap[savedLang] || "fr-FR";
   recognition.start();
 
   setOrbState("listening");
@@ -36,45 +47,67 @@ function startVoiceChat() {
 
   recognition.onresult = async (event) => {
     const userText = event.results[0][0].transcript;
+    console.log("✅ Texte reconnu :", userText);
 
     statusText.textContent = `You said: ${userText}`;
     setOrbState("speaking");
+    statusText.textContent = "Orya is thinking...";
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: userText,
-        language: "français",
-        personality: "cute, douce, gentille et encourageante"
-      })
-    });
+    try {
+      console.log("📤 Envoi à /api/chat...");
 
-    const data = await res.json();
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userText,
+          language: savedLang,
+          personality: savedPersonality
+        })
+      });
 
-    speak(data.reply);
+      console.log("📥 Status réponse :", res.status);
+
+      if (!res.ok) {
+        throw new Error(`Erreur serveur : ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("💬 Réponse Orya :", data.reply);
+
+      statusText.textContent = `Orya: ${data.reply.slice(0, 60)}...`;
+      await speak(data.reply, savedLang);
+
+    } catch (error) {
+      console.error("❌ Erreur fetch /api/chat :", error);
+      setOrbState("idle");
+      statusText.textContent = `Erreur: ${error.message}`;
+    }
   };
 
-  recognition.onerror = () => {
+  recognition.onerror = (event) => {
+    console.error("❌ Erreur reconnaissance :", event.error);
     setOrbState("idle");
-    statusText.textContent = "I could not hear you. Try again.";
+    statusText.textContent = `Mic error: ${event.error}`;
   };
 }
 
-async function speak(text) {
+async function speak(text, lang) {
   try {
+    console.log("🔊 Envoi TTS...");
+
     const res = await fetch("/api/tts", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: text,
-        language: "français"
+        language: lang || localStorage.getItem("oryaLang") || "français"
       })
     });
+
+    if (!res.ok) {
+      throw new Error(`TTS error: ${res.status}`);
+    }
 
     const audioBlob = await res.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
@@ -90,9 +123,17 @@ async function speak(text) {
       statusText.textContent = "Click the mic to speak again";
     };
 
-    audio.play();
+    audio.onerror = (e) => {
+      console.error("❌ Audio error:", e);
+      setOrbState("idle");
+      statusText.textContent = "Audio error. Try again.";
+    };
+
+    await audio.play();
+
   } catch (error) {
-    statusText.textContent = "Voice error.";
+    console.error("❌ Erreur TTS :", error);
+    statusText.textContent = `TTS Error: ${error.message}`;
     setOrbState("idle");
   }
 }

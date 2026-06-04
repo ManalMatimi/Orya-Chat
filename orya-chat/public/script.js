@@ -4,8 +4,9 @@ const messages = document.getElementById("messages");
 const fileInput = document.getElementById("fileInput");
 const languageBtn = document.getElementById("languageBtn");
 
-let selectedLanguage = "français";
-let selectedPersonality = "cute, douce, gentille et encourageante";
+// ✅ Récupère les valeurs sauvegardées ou valeurs par défaut
+let selectedLanguage = localStorage.getItem("oryaLang") || "français";
+let selectedPersonality = localStorage.getItem("oryaPersonality") || "cute, douce, gentille et encourageante";
 
 function addMessage(text, type, extraClass = "") {
   const div = document.createElement("div");
@@ -28,11 +29,11 @@ languageBtn.addEventListener("click", () => {
   popup.id = "langPopup";
 
   popup.innerHTML = `
-    <button type="button" data-lang="français">🇫🇷</button>
-    <button type="button" data-lang="english">🇺🇸</button>
-    <button type="button" data-lang="العربية">🇸🇦</button>
-    <button type="button" data-lang="日本語">🇯🇵</button>
-    <button type="button" data-lang="中文">🇨🇳</button>
+    <button type="button" data-lang="français">🇫🇷 Français</button>
+    <button type="button" data-lang="english">🇺🇸 English</button>
+    <button type="button" data-lang="العربية">🇸🇦 العربية</button>
+    <button type="button" data-lang="日本語">🇯🇵 日本語</button>
+    <button type="button" data-lang="中文">🇨🇳 中文</button>
   `;
 
   document.body.appendChild(popup);
@@ -41,9 +42,21 @@ languageBtn.addEventListener("click", () => {
     btn.addEventListener("click", () => {
       selectedLanguage = btn.dataset.lang;
       languageBtn.textContent = btn.textContent;
+      // ✅ Sauvegarde la langue
+      localStorage.setItem("oryaLang", selectedLanguage);
       popup.remove();
     });
   });
+
+  // ✅ Ferme le popup si on clique ailleurs
+  setTimeout(() => {
+    document.addEventListener("click", function closeLangPopup(e) {
+      if (!popup.contains(e.target) && e.target !== languageBtn) {
+        popup.remove();
+        document.removeEventListener("click", closeLangPopup);
+      }
+    });
+  }, 100);
 });
 
 /* Personnalités */
@@ -53,12 +66,37 @@ document.querySelectorAll(".personality-option").forEach((card) => {
   });
 
   const arrowBtn = card.querySelector("button");
-
   if (arrowBtn) {
     arrowBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       selectPersonality(card);
     });
+  }
+});
+
+// ✅ Active la personnalité sauvegardée au chargement
+window.addEventListener("DOMContentLoaded", () => {
+  const savedPersonality = localStorage.getItem("oryaPersonality");
+  if (savedPersonality) {
+    const cards = document.querySelectorAll(".personality-option");
+    cards.forEach((card) => {
+      if (card.dataset.personality === savedPersonality) {
+        card.classList.add("active");
+      }
+    });
+  }
+
+  // ✅ Met à jour le bouton langue au chargement
+  const savedLang = localStorage.getItem("oryaLang");
+  const langEmojis = {
+    "français": "🇫🇷 Français",
+    "english": "🇺🇸 English",
+    "العربية": "🇸🇦 العربية",
+    "日本語": "🇯🇵 日本語",
+    "中文": "🇨🇳 中文"
+  };
+  if (savedLang && langEmojis[savedLang]) {
+    languageBtn.textContent = langEmojis[savedLang];
   }
 });
 
@@ -69,6 +107,9 @@ function selectPersonality(card) {
 
   card.classList.add("active");
   selectedPersonality = card.dataset.personality;
+
+  // ✅ Sauvegarde la personnalité
+  localStorage.setItem("oryaPersonality", selectedPersonality);
 
   const title = card.querySelector("h4").textContent;
   addMessage(`✨ Personnalité activée : ${title}`, "bot");
@@ -84,7 +125,7 @@ form.addEventListener("submit", async (e) => {
   addMessage(text, "user");
   input.value = "";
 
-  addMessage("Orya réfléchit avec douceur...", "bot", "loading");
+  addMessage("Orya réfléchit...", "bot", "loading");
 
   try {
     const res = await fetch("/api/chat", {
@@ -110,7 +151,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-/* Voix cute Edge TTS */
+/* Voix Edge TTS */
 async function speak(text) {
   try {
     const res = await fetch("/api/tts", {
@@ -120,7 +161,8 @@ async function speak(text) {
       },
       body: JSON.stringify({
         text: text,
-        language: selectedLanguage
+        language: selectedLanguage,
+        personality: selectedPersonality 
       })
     });
 
@@ -132,8 +174,8 @@ async function speak(text) {
     const audioBlob = await res.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
-
     audio.play();
+
   } catch (error) {
     speakFallback(text);
   }
@@ -154,7 +196,6 @@ function speakFallback(text) {
 function chooseFile() {
   fileInput.click();
 }
-
 window.chooseFile = chooseFile;
 
 fileInput.addEventListener("change", async () => {
@@ -179,7 +220,7 @@ fileInput.addEventListener("change", async () => {
 
     if (data.preview) {
       addMessage(
-        `J’ai bien lu ton fichier "${data.fileName}" 💗 Tu peux maintenant me poser des questions dessus.`,
+        `J'ai bien lu ton fichier "${data.fileName}" 💗 Tu peux maintenant me poser des questions dessus.`,
         "bot"
       );
     } else {
@@ -187,11 +228,11 @@ fileInput.addEventListener("change", async () => {
     }
   } catch (error) {
     document.querySelector(".loading")?.remove();
-    addMessage("Erreur pendant l’envoi du fichier.", "bot");
+    addMessage("Erreur pendant l'envoi du fichier.", "bot");
   }
 });
 
-/* Audio */
+/* Audio mic */
 function startVoice() {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -216,7 +257,12 @@ function startVoice() {
 
   recognition.onresult = (event) => {
     input.value = event.results[0][0].transcript;
+    // ✅ Soumet automatiquement après reconnaissance vocale
+    form.dispatchEvent(new Event("submit"));
+  };
+
+  recognition.onerror = () => {
+    addMessage("Je n'ai pas pu t'entendre. Réessaie 🎙", "bot");
   };
 }
-
 window.startVoice = startVoice;
