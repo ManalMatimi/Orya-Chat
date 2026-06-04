@@ -128,17 +128,21 @@ body {
   font-weight: bold;
 }
 
+/* ✅ .chat devient un conteneur flex à hauteur fixe */
 .chat {
   padding: 30px 40px;
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .welcome {
@@ -146,6 +150,7 @@ body {
   align-items: center;
   gap: 15px;
   margin: 35px 0 20px;
+  flex-shrink: 0;
 }
 
 .welcome p {
@@ -174,12 +179,13 @@ body {
   font-size: 13px;
 }
 
+/* ✅ Seule cette zone défile */
 .messages {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(88vh - 250px);
   padding: 10px;
   scroll-behavior: smooth;
+  min-height: 0;
 }
 
 /* Jolie barre de scroll */
@@ -216,11 +222,14 @@ body {
   color: white;
 }
 
+/* ✅ Les outils restent toujours visibles */
 .tools {
   display: flex;
   gap: 12px;
   margin-bottom: 12px;
+  margin-top: 12px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .tools button {
@@ -231,11 +240,13 @@ body {
   cursor: pointer;
 }
 
+/* ✅ L'input reste toujours visible en bas */
 .input-box {
   display: flex;
   background: white;
   border-radius: 25px;
   padding: 8px;
+  flex-shrink: 0;
 }
 
 .input-box input {
